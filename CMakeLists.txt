@@ -37,13 +37,15 @@ include(dependencies.cmake)
 # If we have Git, try to see if we are in a git repo
 if(${GIT_FOUND})
     execute_process(
-        COMMAND ${GIT_EXECUTABLE} --git-dir "${CMAKE_CURRENT_SOURCE_DIR}/.git" rev-parse --short HEAD
-        OUTPUT_VARIABLE GIT_COMMIT_F
-        ERROR_QUIET
+        COMMAND git rev-parse --git-dir
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        OUTPUT_VARIABLE GIT_DIR
+        OUTPUT_STRIP_TRAILING_WHITESPACE
     )
-    if("${GIT_COMMIT_F}" STREQUAL "")
+    if("${GIT_DIR}" STREQUAL "")
         set(IN_GIT_REPO FALSE)
     else()
+        get_filename_component(GIT_DIR "${GIT_DIR}" ABSOLUTE)
         set(IN_GIT_REPO TRUE)
     endif()
 else()
