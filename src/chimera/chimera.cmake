@@ -166,8 +166,6 @@ add_library(chimera STATIC
     src/chimera/halo_data/flag.cpp
     src/chimera/halo_data/game_engine.cpp
     src/chimera/halo_data/globals.cpp
-    src/chimera/halo_data/hud_fonts.cpp
-    src/chimera/halo_data/hud_fonts.S
     src/chimera/halo_data/keyboard.cpp
     src/chimera/halo_data/light.cpp
     src/chimera/halo_data/map.cpp

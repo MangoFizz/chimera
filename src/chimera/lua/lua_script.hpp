@@ -9,7 +9,7 @@
 #include "../event/event.hpp"
 
 namespace Chimera {
-    #define CHIMERA_LUA_VERSION 2.056
+    #define CHIMERA_LUA_VERSION 2.057
 
     struct LuaScript;
 
