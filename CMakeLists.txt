@@ -21,6 +21,17 @@ find_package(Python3 REQUIRED)
 # We should have git, too, but it's not 100% required
 find_package(Git)
 
+# Find cURL library
+find_package(CURL)
+add_library(curl INTERFACE)
+target_link_libraries(curl INTERFACE CURL::libcurl_static)
+
+# Find zstd library
+find_package(zstd)
+add_library(zstd INTERFACE)
+target_link_libraries(zstd INTERFACE zstd::libzstd_static)
+
+
 # Windows XP
 option(CHIMERA_WINXP "Enable support for Windows XP (increases binary size)" OFF)
 if(${CHIMERA_WINXP})
@@ -30,9 +41,6 @@ else()
     # Windows 7
     add_definitions(-D_WIN32_WINNT=0x0601)
 endif()
-
-# Build dependencies
-include(dependencies.cmake)
 
 # If we have Git, try to see if we are in a git repo
 if(${GIT_FOUND})

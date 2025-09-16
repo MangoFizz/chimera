@@ -218,7 +218,7 @@ add_library(chimera STATIC
     ${CMAKE_CURRENT_BINARY_DIR}/localization_strings.hpp
     ${CMAKE_CURRENT_BINARY_DIR}/color_codes.hpp
 )
-add_dependencies(chimera chimera-version local_curl local_zstd)
+add_dependencies(chimera chimera-version)
 
 # Set how we'll generate localization_string
 file(GLOB CHIMERA_LOCALIZATION_DEPS "${CMAKE_CURRENT_SOURCE_DIR}/src/chimera/localization/language/*")
@@ -243,7 +243,7 @@ target_include_directories(chimera
 )
 
 # Set the name
-target_link_libraries(chimera shlwapi map_downloader lua local_curl ws2_32 bcrypt local_zstd)
+target_link_libraries(chimera shlwapi map_downloader lua curl ws2_32 bcrypt zstd)
 
 # This one isn't worth fixing
 set_source_files_properties(src/chimera/signature/hac/codefinder.cpp PROPERTIES COMPILE_FLAGS "-Wno-old-style-cast")
