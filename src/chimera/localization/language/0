@@ -202,7 +202,6 @@ chimera_map_info_command_map_tag_data_size                                      
 chimera_map_info_command_map_protected                                          Protected
 chimera_map_info_command_mismatched                                             Mismatched
 chimera_map_info_command_target_engine                                          Target engine
-chimera_widescreen_fix_command_warning_cannot_disable_font_override_enabled     Cannot disable widescreen fix while font_override is enabled
 
 chimera_map_downloading_downloading_map_format                                  Downloading %s.map...
 chimera_map_downloading_connecting_to_map_server                                Connecting to map server...

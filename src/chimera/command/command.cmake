@@ -72,5 +72,4 @@ set(COMMAND_FILES
     ${COMMAND_DIR}/client/visual/shrink_empty_weapons.cpp
     ${COMMAND_DIR}/client/visual/split_screen_hud.cpp
     ${COMMAND_DIR}/client/visual/uncap_cinematic.cpp
-    ${COMMAND_DIR}/client/visual/widescreen_fix.cpp
 )
