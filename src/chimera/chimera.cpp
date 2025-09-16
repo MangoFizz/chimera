@@ -70,6 +70,7 @@
 #include "fix/flashlight_fix.hpp"
 #include "fix/motion_sensor_fix.hpp"
 #include "fix/inverted_flag.hpp"
+#include "fix/widescreen_fix.hpp"
 #include "halo_data/object.hpp"
 #include "event/tick.hpp"
 #include "event/map_load.hpp"
@@ -156,6 +157,8 @@ namespace Chimera {
                 if(chimera->get_ini()->get_value_bool("halo.april_fools").value_or(true)) {
                     add_map_load_event(april_fools);
                 }
+
+                set_up_widescreen_fix();
 
                 // Set up this hook
                 set_up_rcon_message_hook();

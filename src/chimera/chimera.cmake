@@ -145,12 +145,8 @@ add_library(chimera STATIC
     src/chimera/fix/weapon_swap_ticks.S
     src/chimera/fix/weather_fix.cpp
     src/chimera/fix/weather_fix.S
-    src/chimera/fix/widescreen_element_reposition_hud.S
-    src/chimera/fix/widescreen_element_reposition_letterbox.S
-    src/chimera/fix/widescreen_element_reposition_menu.S
     src/chimera/fix/widescreen_element_reposition_menu_text.S
     src/chimera/fix/widescreen_fix.cpp
-    src/chimera/fix/widescreen_mouse.S
     src/chimera/fix/biped_ui_spawn.cpp
     src/chimera/halo_data/antenna.cpp
     src/chimera/halo_data/camera.cpp

@@ -11,10 +11,9 @@ namespace Chimera {
     };
 
     /**
-     * Set whether or not to have the widescreen fix
-     * @param new_setting setting for the widescreen fix
+     * Set up the widescreen fix
      */
-    void set_widescreen_fix(WidescreenFixSetting new_setting) noexcept;
+    void set_up_widescreen_fix() noexcept;
 
     /**
      * Get whether the widescreen fix is enabled
