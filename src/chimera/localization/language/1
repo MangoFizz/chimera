@@ -144,7 +144,6 @@ chimera_diagonals_command_help                                                  
 chimera_interpolate_help                                                        Mejora la apariencia del movimiento en objetos y animaciones (Uso intensivo de CPU.)
 chimera_model_detail_command_help                                               Cambia el nivel de detalle que el juego usa en modelos 3D.
 chimera_shrink_empty_weapons_help                                               Miniaturiza las armas vacias en el suelo.
-chimera_simple_score_screen_command_help                                        Muestra una tabla de puntuacion simplificada y más clásica.
 chimera_split_screen_hud_command_help                                           Usa el HUD de pantalla dividida como HUD principal.
 
 chimera_category_server                                                         servidor
