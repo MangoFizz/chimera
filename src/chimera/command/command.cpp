@@ -226,7 +226,6 @@ namespace Chimera {
         ADD_COMMAND("chimera_block_multitexture_overlays", "chimera_category_visual", "client_multitexture_overlays", block_multitexture_overlays_command, true, 0, 1);
         ADD_COMMAND("chimera_block_server_ip", "chimera_category_visual", "client_server_ip", block_server_ip_command, true, 0, 1);
         ADD_COMMAND("chimera_block_zoom_blur", "chimera_category_visual", "client_zoom_blur", block_zoom_blur_command, true, 0, 1);
-        ADD_COMMAND("chimera_console_prompt_color", "chimera_category_visual", "client_console_prompt_color", console_prompt_color_command, true, 0, 3);
         ADD_COMMAND("chimera_fov", "chimera_category_visual", "client", fov_command, true, 0, 1);
         ADD_COMMAND("chimera_fov_vehicle", "chimera_category_visual", "client", fov_vehicle_command, true, 0, 1);
         ADD_COMMAND("chimera_fov_cinematic", "chimera_category_visual", "client", fov_cinematic_command, true, 0, 1);

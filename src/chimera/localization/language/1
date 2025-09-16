@@ -126,8 +126,6 @@ chimera_signature_info_command_dumped                                           
 chimera_uncap_cinematic_command_help                                            Deshabilita el bloqueo de 30 FPS en las cinemáticas.
 
 chimera_command_no_commands_available_in_category                               No hay comandos disponibles para tu instalación de Halo.
-chimera_console_prompt_color_command_help                                       Cambia el color de la consola.
-chimera_console_prompt_color_command_output                                     %.02f rojo, %.02f verde, %.02f azul
 chimera_enable_console_command_help                                             Habilita la consola.
 chimera_enable_console_command_warning                                          La consola fue habilitada antes de iniciar el juego (-console) y no puede ser deshabilitada.
 

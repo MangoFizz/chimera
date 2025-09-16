@@ -127,8 +127,6 @@ chimera_command_help                                                            
 chimera_command_info_for_command                                                Info for %s:
 chimera_command_version                                                         Chimera version %s
 chimera_config_note                                                             #         NOTE: This file is autosaved and may be overwritten on load.         #
-chimera_console_prompt_color_command_help                                       Change the console prompt color.
-chimera_console_prompt_color_command_output                                     %.02f red, %.02f green, %.02f blue
 custom_edition_netcode_command_help                                             Enable Custom Edition support.
 custom_edition_netcode_command_error_needs_custom_edition_map_support           Custom Edition map support is not enabled on your client.
 chimera_delete_empty_weapons_help                                               Delete empty weapons when hosting (emulates Xbox behavior).
