@@ -16,18 +16,11 @@
 #include "../halo_data/resolution.hpp"
 #include "widescreen_fix.hpp"
 
-extern "C" {
-    void widescreen_input_text() noexcept;
-    void widescreen_input_text_undo() noexcept;
-    std::int16_t *widescreen_text_input_element;
-    std::int16_t widescreen_left_offset_add = 0;
-}
-
 namespace Chimera {
     static void on_tick() noexcept;
-    static float *scope_width;
     static float aspect_ratio = 4.0f / 3.0f;
     extern float widescreen_width_480p;
+    static std::int16_t widescreen_left_offset_add = 0;
     static std::int32_t *console_width;
     static std::int32_t *text_max_x;
     static std::int16_t *f2_motd_x;
@@ -45,20 +38,18 @@ namespace Chimera {
     static std::int32_t *f2_rules_4_left_x;
     static std::int32_t *console_output_width;
     static std::int16_t tabs[4];
-
     static std::uint16_t *tabs_ptr;
 
+    extern "C" void reposition_gametype_indicator_asm();
+    extern "C" void reposition_f2_background_asm();
 
-    extern "C" void reposition_menu_text_input() noexcept {
-        std::int16_t increase = widescreen_left_offset_add;
-        widescreen_text_input_element[1] += increase;
-        widescreen_text_input_element[3] += increase;
+    extern "C" void reposition_gametype_indicator(Point2DInt *offset) noexcept {
+        offset->x += widescreen_left_offset_add * 2;
     }
 
-    extern "C" void unreposition_menu_text_input() noexcept {
-        std::int16_t increase = widescreen_left_offset_add;
-        widescreen_text_input_element[1] -= increase;
-        widescreen_text_input_element[3] -= increase;
+    extern "C" void reposition_f2_background(Rectangle2D *rect) noexcept {
+        rect->left += widescreen_left_offset_add;
+        rect->right += widescreen_left_offset_add;
     }
     
     bool widescreen_fix_enabled() noexcept {
@@ -99,18 +90,40 @@ namespace Chimera {
 
         auto &widescreen_text_f2_text_position_rules_4_left_x_sig = get_chimera().get_signature("widescreen_text_f2_text_position_rules_4_left_x_sig");
         f2_rules_4_left_x = reinterpret_cast<std::int32_t *>(widescreen_text_f2_text_position_rules_4_left_x_sig.data() + 0x1);
+        
+        static Hook reposition_gametype_indicator_background_hook;
+        auto &widescreen_gametype_indicator_background_sig = get_chimera().get_signature("widescreen_gametype_indicator_background_sig");
+        write_jmp_call(widescreen_gametype_indicator_background_sig.data(), reposition_gametype_indicator_background_hook, reinterpret_cast<void *>(reposition_gametype_indicator_asm));
+        
+        static Hook reposition_gametype_indicator_hook;
+        auto &widescreen_gametype_indicator_sig = get_chimera().get_signature("widescreen_gametype_indicator_sig");
+        write_jmp_call(widescreen_gametype_indicator_sig.data(), reposition_gametype_indicator_hook, reinterpret_cast<void *>(reposition_gametype_indicator_asm));
+
+        static Hook widescreen_f2_background_1_hook;
+        auto &widescreen_f2_background_1 = get_chimera().get_signature("widescreen_f2_background_1");
+        write_jmp_call(widescreen_f2_background_1.data(), widescreen_f2_background_1_hook, reinterpret_cast<void *>(reposition_f2_background_asm));
+
+        static Hook widescreen_f2_background_2_hook;
+        auto &widescreen_f2_background_2 = get_chimera().get_signature("widescreen_f2_background_2");
+        write_jmp_call(widescreen_f2_background_2.data(), widescreen_f2_background_2_hook, reinterpret_cast<void *>(reposition_f2_background_asm));
+
+        static Hook widescreen_f2_background_3_hook;
+        auto &widescreen_f2_background_3 = get_chimera().get_signature("widescreen_f2_background_3");
+        write_jmp_call(widescreen_f2_background_3.data(), widescreen_f2_background_3_hook, reinterpret_cast<void *>(reposition_f2_background_asm));
+
+        static Hook widescreen_f2_background_4_hook;
+        auto &widescreen_f2_background_4 = get_chimera().get_signature("widescreen_f2_background_4");
+        write_jmp_call(widescreen_f2_background_4.data(), widescreen_f2_background_4_hook, reinterpret_cast<void *>(reposition_f2_background_asm));
 
         auto &widescreen_console_tabs_sig = get_chimera().get_signature("widescreen_console_tabs_sig");
         console_output_width = reinterpret_cast<std::int32_t *>(widescreen_console_tabs_sig.data() + 0x3A);
         overwrite(widescreen_console_tabs_sig.data() + 0x51 + 1, reinterpret_cast<std::int16_t *>(tabs));
         overwrite(widescreen_console_tabs_sig.data() + 0x56 + 3, reinterpret_cast<std::int16_t *>(tabs) + 2);
 
-        static Hook input_text;
-        auto &widescreen_input_text_sig = get_chimera().get_signature("widescreen_input_text_sig");
-        write_jmp_call(reinterpret_cast<void *>(widescreen_input_text_sig.data()), input_text, reinterpret_cast<const void *>(widescreen_input_text), reinterpret_cast<const void *>(widescreen_input_text_undo));
+        auto &widescreen_console_input_sig = get_chimera().get_signature("widescreen_console_input_sig");
+        console_width = reinterpret_cast<std::int32_t *>(widescreen_console_input_sig.data() + 2);
 
         add_tick_event(on_tick);
-        on_tick();
     }
 
     static void on_tick() noexcept {
@@ -121,8 +134,6 @@ namespace Chimera {
         widescreen_width_480p = aspect_ratio * 480.0f;
 
         if(*console_width != static_cast<std::int32_t>(widescreen_width_480p)) {
-            overwrite(scope_width, widescreen_width_480p);
-
             overwrite(console_width, static_cast<std::int32_t>(widescreen_width_480p));
             overwrite(text_max_x, static_cast<std::uint32_t>(widescreen_width_480p));
 

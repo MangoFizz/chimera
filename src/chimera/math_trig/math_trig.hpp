@@ -4,6 +4,7 @@
 #define MATH_TRIG_HPP
 
 #include <windows.h>
+#include <cstdint>
 
 #define HALO_PI 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679
 #define DEGREES_TO_RADIANS(deg) (deg / 180.0 * HALO_PI)
@@ -64,6 +65,18 @@ namespace Chimera {
     struct Point2D {
         float x;
         float y;
+    };
+
+    struct Point2DInt {
+        int16_t x;
+        int16_t y;
+    };
+
+    struct Rectangle2D {
+        int16_t top;
+        int16_t left;
+        int16_t bottom;
+        int16_t right;
     };
 
     struct Euler3DPYR {

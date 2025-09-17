@@ -4,26 +4,16 @@
 
 .text
 
-.globl _widescreen_input_text
-_widescreen_input_text:
+.globl _reposition_gametype_indicator_asm
+_reposition_gametype_indicator_asm:
+    push eax
+    call _reposition_gametype_indicator
+    pop eax
+    ret
 
-pushfd
-pushad
-mov dword ptr _widescreen_text_input_element, ecx
-call _reposition_menu_text_input
-popad
-popfd
-
-ret
-
-
-.globl _widescreen_input_text_undo
-_widescreen_input_text_undo:
-
-pushfd
-pushad
-call _unreposition_menu_text_input
-popad
-popfd
-
-ret
+.globl _reposition_f2_background_asm
+_reposition_f2_background_asm:
+    push ecx
+    call _reposition_f2_background
+    add esp, 4
+    ret
