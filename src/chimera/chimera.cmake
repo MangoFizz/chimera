@@ -237,7 +237,7 @@ target_include_directories(chimera
 )
 
 # Set the name
-target_link_libraries(chimera shlwapi map_downloader lua curl ws2_32 bcrypt zstd)
+target_link_libraries(chimera shlwapi map_downloader lua53 curl ws2_32 bcrypt zstd)
 
 # This one isn't worth fixing
 set_source_files_properties(src/chimera/signature/hac/codefinder.cpp PROPERTIES COMPILE_FLAGS "-Wno-old-style-cast")
