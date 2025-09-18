@@ -78,11 +78,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32 -Wall -pedantic -Wextra -masm=intel
 # The mod we've all been waiting for
 include("src/chimera/chimera.cmake")
 
-# Monolith Mod Loader
-#
-# This loads chimera.dll and anything in mods/
-include("src/monolith/monolith.cmake")
-
 # Map Downloader
 #
 # We need this to download maps from the HAC2 / HaloNet repo and other map servers

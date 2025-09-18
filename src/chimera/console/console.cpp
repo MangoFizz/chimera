@@ -65,11 +65,6 @@ namespace Chimera {
 
     static CommandEntry ***entries = nullptr;
     static std::uint32_t *entry_count;
-    static CommandEntry **old_entries;
-    static std::uint32_t old_entry_count;
-
-    static std::vector<CommandEntry *> new_entries_list;
-    static std::vector<std::unique_ptr<CommandEntry>> new_entries_added;
 
     void script_command_dump_command(int, const char **) noexcept {
         std::filesystem::path path;
@@ -154,56 +149,11 @@ namespace Chimera {
         }
     }
 
-    static void on_tab_completion_start() noexcept {
-        auto &chimera_commands = get_chimera().get_commands();
-
-        old_entry_count = *entry_count;
-        old_entries = *entries;
-
-        new_entries_list = std::vector<CommandEntry *>(old_entries, old_entries + old_entry_count);
-        for(auto &command : chimera_commands) {
-            if(!get_chimera().feature_present(command.feature())) {
-                continue;
-            }
-
-            auto &new_command = new_entries_added.emplace_back(std::make_unique<CommandEntry>());
-            new_command->return_type = 4;
-            new_command->name = command.name();
-            new_command->help_text = "see README.md";
-            new_command->help_parameters = nullptr;
-            new_command->more_stuff = 0x15;
-            new_entries_list.emplace_back(new_command.get());
-        }
-
-        auto &clear_command = new_entries_added.emplace_back(std::make_unique<CommandEntry>());
-        clear_command->return_type = 4;
-        clear_command->name = "clear";
-        clear_command->help_text = "see README.md";
-        clear_command->help_parameters = nullptr;
-        clear_command->more_stuff = 0x15;
-        new_entries_list.emplace_back(clear_command.get());
-
-        overwrite(entry_count, static_cast<std::uint32_t>(new_entries_list.size()));
-        overwrite(entries, new_entries_list.data());
-    }
-
-    static void on_tab_completion_end() noexcept {
-        overwrite(entry_count, old_entry_count);
-        overwrite(entries, old_entries);
-
-        new_entries_list.clear();
-        new_entries_added.clear();
-    }
-
     void initialize_console_hook() {
         static Hook hook;
         const auto &sig = get_chimera().get_signature("console_call_sig");
         write_jmp_call(sig.data(), hook, reinterpret_cast<const void *>(read_command));
         console_text = *reinterpret_cast<char **>(sig.data() - 4);
-
-        static Hook on_tab_completion_hook;
-        const auto on_tab_completion_sig = get_chimera().get_signature("on_tab_completion_sig");
-        write_jmp_call(on_tab_completion_sig.data(), on_tab_completion_hook, reinterpret_cast<const void *>(on_tab_completion_start), reinterpret_cast<const void *>(on_tab_completion_end));
 
         bool non_custom = game_engine() != GameEngine::GAME_ENGINE_CUSTOM_EDITION;
         const char *sig_to_use;
@@ -245,58 +195,10 @@ namespace Chimera {
 
     // This function intercepts the console and reads the buffer.
     static void read_command() {
-        block_error();
-        const Command *found_command;
-
-        // If "clear" is sent to the console, change it to "cls"
-        if(std::strcmp(console_text, "clear") == 0) {
-            std::strcpy(console_text, "cls");
-        }
-
-        // Clear the text if needed
-        if(std::strcmp(console_text, "cls") == 0) {
-            position = 0;
-            custom_lines.clear();
-            return;
-        }
-
         // If this is the rcon command, we may need to do special things
         if(std::strncmp(console_text, "rcon", 4) == 0 && get_chimera().feature_present("client") && server_type() == ServerType::SERVER_DEDICATED) {
             rcon_command_used_recently = true;
             add_tick_event(check_when_console_is_closed);
-
-            // If this is an rcon password, check if we're using rconp
-            if(rcon_password.size() && std::strncmp(console_text, "rconp ", 6) == 0) {
-                auto command_broken_up = split_arguments(console_text);
-                command_broken_up[0] = "rcon";
-                command_broken_up.insert(command_broken_up.begin() + 1, rcon_password);
-                auto command_put_together = unsplit_arguments(command_broken_up);
-                std::strncpy(console_text, command_put_together.data(), 75);
-            }
-        }
-
-        switch(get_chimera().execute_command(console_text, &found_command, true)) {
-            case CommandResult::COMMAND_RESULT_FAILED_ERROR_NOT_FOUND: {
-                bool allow = true;
-                call_in_order_allow(command_events, allow, console_text);
-                if(allow) {
-                    unblock_error();
-                }
-                break;
-            }
-            case CommandResult::COMMAND_RESULT_FAILED_NOT_ENOUGH_ARGUMENTS:
-                console_error(localize("chimera_error_not_enough_arguments"), found_command->name(), found_command->min_args());
-                break;
-            case CommandResult::COMMAND_RESULT_FAILED_TOO_MANY_ARGUMENTS:
-                console_error(localize("chimera_error_too_many_arguments"), found_command->name(), found_command->max_args());
-                break;
-            case CommandResult::COMMAND_RESULT_FAILED_FEATURE_NOT_AVAILABLE:
-                console_error(localize("chimera_error_command_unavailable"), found_command->name(), found_command->feature());
-                break;
-            case CommandResult::COMMAND_RESULT_SUCCESS:
-                break;
-            default:
-                break;
         }
     }
 

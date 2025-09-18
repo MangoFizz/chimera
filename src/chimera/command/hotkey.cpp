@@ -87,22 +87,22 @@ namespace Chimera {
                     auto &command_to_use = ((h.last_command_is_alternate = !h.last_command_is_alternate) && h.use_alternate_command) ? h.alternate_command : h.command;
 
                     if(std::strncmp(command_to_use.c_str(), "chimera", strlen("chimera")) == 0) {
-                        const Command *found_command;
-                        switch(get_chimera().execute_command(command_to_use.c_str(), &found_command)) {
+                        auto arguments = split_arguments(command_to_use.c_str());
+                        switch(get_chimera().execute_command(command_to_use.c_str())) {
                             case COMMAND_RESULT_SUCCESS:
                             case COMMAND_RESULT_FAILED_ERROR:
                                 break;
                             case COMMAND_RESULT_FAILED_FEATURE_NOT_AVAILABLE:
-                                console_error(localize("chimera_error_command_unavailable"), found_command->name(), found_command->feature());
+                                console_error(localize("chimera_error_command_unavailable"), arguments[0]);
                                 break;
                             case COMMAND_RESULT_FAILED_ERROR_NOT_FOUND:
                                 console_error(localize("chimera_error_command_not_found"));
                                 break;
                             case COMMAND_RESULT_FAILED_NOT_ENOUGH_ARGUMENTS:
-                                console_error(localize("chimera_error_not_enough_arguments"), found_command->name(), found_command->min_args());
+                                console_error(localize("chimera_error_not_enough_arguments"), arguments[0]);
                                 break;
                             case COMMAND_RESULT_FAILED_TOO_MANY_ARGUMENTS:
-                                console_error(localize("chimera_error_too_many_arguments"), found_command->name(), found_command->max_args());
+                                console_error(localize("chimera_error_too_many_arguments"), arguments[0]);
                                 break;
                         }
                     }

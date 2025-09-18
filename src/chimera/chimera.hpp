@@ -31,7 +31,6 @@ namespace Chimera {
     #define MAX_CHIMERA_MAP_SIZE static_cast<std::size_t>(512 * 1024 * 1024)
 
     class Signature;
-    class Config;
     class Ini;
 
     class Chimera {
@@ -62,15 +61,7 @@ namespace Chimera {
          * @param  found_command command if found (unchanged if not)
          * @return               result of command
          */
-        CommandResult execute_command(const char *command, const Command **found_command = nullptr, bool saves = false);
-
-        /**
-         * Get the config
-         * @return config
-         */
-        Config &get_config() noexcept {
-            return *this->p_config;
-        }
+        CommandResult execute_command(const char *command, bool saves = false);
 
         /**
          * Get the path to the Chimera profile folder
@@ -89,11 +80,6 @@ namespace Chimera {
          * @return path to the maps folder
          */
         const std::filesystem::path get_map_path() noexcept;
-
-        /**
-         * Reload the configuration
-         */
-        void reload_config();
 
         /**
          * Reload the ini
@@ -117,18 +103,6 @@ namespace Chimera {
          */
         void set_language(Language language) noexcept;
 
-        /**
-         * Get a vector of all of the commands
-         * @return all of the commands
-         */
-        const std::vector<Command> &get_commands() const noexcept;
-
-        /**
-         * Get a vector of all of the commands
-         * @return all of the commands
-         */
-        std::vector<Command> &get_commands() noexcept;
-
         /** Construct a Chimera */
         Chimera();
 
@@ -147,12 +121,6 @@ namespace Chimera {
 
         /** Signatures loaded into Chimera */
         std::vector<Signature> p_signatures;
-
-        /** Commands in Chimera */
-        std::vector<Command> p_commands;
-
-        /** Config file for Chimera */
-        std::unique_ptr<Config> p_config;
 
         /** Ini file for Chimera */
         std::unique_ptr<Ini> p_ini;

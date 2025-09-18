@@ -39,7 +39,7 @@ namespace Chimera {
 
     static void revert_if_needed() noexcept {
         if(server_type() == ServerType::SERVER_DEDICATED) {
-            get_chimera().execute_command("chimera_tps 30.0", nullptr, false);
+            get_chimera().execute_command("chimera_tps 30.0", false);
         }
     }
 }

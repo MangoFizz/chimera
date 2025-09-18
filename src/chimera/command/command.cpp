@@ -2,45 +2,14 @@
 
 #include <cstring>
 #include <memory>
+#include <command/command.hpp>
 #include "../localization/localization.hpp"
 #include "../chimera.hpp"
 #include "command.hpp"
 
+using namespace Balltze;
+
 namespace Chimera {
-    CommandResult Command::call(std::size_t arg_count, const char **args) const noexcept {
-        if(!get_chimera().feature_present(this->feature())) {
-            return CommandResult::COMMAND_RESULT_FAILED_FEATURE_NOT_AVAILABLE;
-        }
-        else if(arg_count > this->max_args()) {
-            return CommandResult::COMMAND_RESULT_FAILED_TOO_MANY_ARGUMENTS;
-        }
-        else if(arg_count < this->min_args()) {
-            return CommandResult::COMMAND_RESULT_FAILED_NOT_ENOUGH_ARGUMENTS;
-        }
-        else {
-            return this->p_function(arg_count, args) ? CommandResult::COMMAND_RESULT_SUCCESS : CommandResult::COMMAND_RESULT_FAILED_ERROR;
-        }
-    }
-
-    CommandResult Command::call(const std::vector<std::string> &arguments) const noexcept {
-        // Get argument count
-        std::size_t arg_count = arguments.size();
-
-        // If no arguments were passed, just call it.
-        if(arg_count == 0) {
-            return this->call(0, nullptr);
-        }
-
-        // Make our array
-        auto arguments_alloc(std::make_unique<const char *[]>(arg_count));
-        for(std::size_t i = 0; i < arg_count; i++) {
-            arguments_alloc[i] = arguments[i].data();
-        }
-
-        // Do it!
-        return this->call(arg_count, arguments_alloc.get());
-    }
-
     std::vector<std::string> split_arguments(const char *command) noexcept {
         // This is the vector to return.
         std::vector<std::string> arguments;
@@ -149,22 +118,45 @@ namespace Chimera {
         return unsplit;
     }
 
-    Command::Command(const char *name, const char *category, const char *feature, const char *help, CommandFunction function, bool autosave, std::size_t min_args, std::size_t max_args) :
-        p_name(name), p_category(category), p_feature(feature), p_help(help), p_function(function), p_autosave(autosave), p_min_args(min_args), p_max_args(max_args) {}
+    static void add_command(const std::string &name, const std::string &category, Balltze::CommandFunction function, bool autosave = false, std::size_t min_args = 0, std::size_t max_args = 0) {
+        CommandBuilder builder;
+        
+        builder.name(name.substr(8))
+            .category(category)
+            .help(localize((name + "_command_help").c_str()))
+            .function(function);
+        
+        for(std::size_t i = 0; i < max_args; i++) {
+            if(i < min_args) {
+                builder.param(HSC_DATA_TYPE_SIZE, std::string("arg") + std::to_string(i + 1), false);
+            }
+            else {
+                builder.param(HSC_DATA_TYPE_SIZE, std::string("arg") + std::to_string(i + 1), true);
+            }
+        }
 
-    Command::Command(const char *name, const char *category, const char *feature, const char *help, CommandFunction function, bool autosave, std::size_t args) : Command(name, category, feature, help, function, autosave, args, args) {}
+        builder.autosave(autosave)
+            .can_call_from_console()
+            .is_public()
+            .create(COMMAND_SOURCE_CHIMERA);
+    }
 
     void Chimera::get_all_commands() noexcept {
-        #define ADD_COMMAND(name, category, feature, command_fn, autosave, ...) \
+        #define ADD_COMMAND(name, category, feature, command_fn, autosave, min_args, max_args) \
             extern bool command_fn(int, const char **); \
             static_assert(autosave == false || autosave == true, "autosave value is not a boolean"); \
-            this->p_commands.emplace_back(name, category, feature, name "_command_help", command_fn, autosave, __VA_ARGS__);
-
-        this->p_commands.clear();
+            add_command(name, category, [](const std::vector<std::string> &args) -> bool { \
+                std::vector<const char *> argv; \
+                argv.reserve(args.size()); \
+                for (const auto &arg : args) { \
+                    argv.push_back(arg.c_str()); \
+                } \
+                return command_fn(args.size(), argv.data()); \
+            }, autosave, min_args, max_args);
 
         // Chimera-specific commands
-        this->p_commands.emplace_back("chimera", localize("chimera_category_core"), "core", localize("chimera_command_help"), Chimera::chimera_command, false, 0, 1);
-        this->p_commands.emplace_back("chimera_signature_info", localize("chimera_category_core"), "core", localize("chimera_signature_info_command_help"), Chimera::signature_info_command, false, 1, 1);
+        // this->p_commands.emplace_back("chimera", localize("chimera_category_core"), "core", localize("chimera_command_help"), Chimera::chimera_command, false, 0, 1);
+        // this->p_commands.emplace_back("chimera_signature_info", localize("chimera_category_core"), "core", localize("chimera_signature_info_command_help"), Chimera::signature_info_command, false, 1, 1);
         ADD_COMMAND("chimera_about", "chimera_category_core", "core", about_command, true, 0, 0);
         ADD_COMMAND("chimera_language", "chimera_category_core", "core", language_command, true, 0, 1);
         ADD_COMMAND("chimera_chat_color_help", "chimera_category_custom_chat", "client_custom_chat", chat_color_help_command, true, 0, 1);
@@ -174,12 +166,7 @@ namespace Chimera {
         // Debug
         ADD_COMMAND("chimera_budget", "chimera_category_debug", "client", budget_command, true, 0, 1);
 
-        if(this->feature_present("core_devmode_retail")) {
-            ADD_COMMAND("chimera_devmode", "chimera_category_debug", "core_devmode_retail", devmode_retail_command, true, 0, 1);
-        }
-        else {
-            ADD_COMMAND("chimera_devmode", "chimera_category_debug", "core_devmode", devmode_command, true, 0, 1);
-        }
+        ADD_COMMAND("chimera_devmode", "chimera_category_debug", "core_devmode", devmode_command, true, 0, 1);
         ADD_COMMAND("chimera_load_ui_map", "chimera_category_debug", "client", load_ui_map_command, false, 0, 0);
         ADD_COMMAND("chimera_player_info", "chimera_category_debug", "core", player_info_command, false, 0, 1);
         ADD_COMMAND("chimera_apply_damage", "chimera_category_debug", "core", apply_damage_command, false, 2, 5);
@@ -193,7 +180,7 @@ namespace Chimera {
         ADD_COMMAND("chimera_map_info", "chimera_category_debug", "client", map_info_command, false, 0, 0);
 
         // Enhancements
-        this->p_commands.emplace_back("chimera_block_all_bullshit", localize("chimera_category_enhancement"), "client", localize("chimera_block_all_bullshit_help"), Chimera::block_all_bullshit_command, false, 0, 0);
+        // this->p_commands.emplace_back("chimera_block_all_bullshit", localize("chimera_category_enhancement"), "client", localize("chimera_block_all_bullshit_help"), Chimera::block_all_bullshit_command, false, 0, 0);
         ADD_COMMAND("chimera_block_buffering", "chimera_category_enhancement", "client_disable_buffering", block_buffering_command, true, 0, 1);
         ADD_COMMAND("chimera_block_extra_weapon", "chimera_category_enhancement", "client_block_extra_weapon", block_extra_weapon_command, false, 0, 0);
         ADD_COMMAND("chimera_unblock_all_extra_weapons", "chimera_category_enhancement", "client_block_extra_weapon", unblock_all_extra_weapons_command, false, 0, 0);

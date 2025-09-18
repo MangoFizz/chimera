@@ -2,6 +2,7 @@
 
 #include <cstring>
 #include <cmath>
+#include <impl/interface/hud.h>
 
 #include "../math_trig/math_trig.hpp"
 #include "../halo_data/pad.hpp"
@@ -45,6 +46,11 @@ namespace Chimera {
 
     extern "C" void reposition_gametype_indicator(Point2DInt *offset) noexcept {
         offset->x += widescreen_left_offset_add * 2;
+
+        // Apply safe zones
+        auto hud_interface_safe_zones = hud_get_safe_zones();
+        offset->x -= hud_interface_safe_zones.x;
+        offset->y += hud_interface_safe_zones.y;
     }
 
     extern "C" void reposition_f2_background(Rectangle2D *rect) noexcept {

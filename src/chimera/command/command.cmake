@@ -5,7 +5,6 @@ set(COMMAND_DIR src/chimera/command)
 set(COMMAND_FILES
     ${COMMAND_DIR}/command.cpp
     ${COMMAND_DIR}/core/chimera/about.cpp
-    ${COMMAND_DIR}/core/chimera/chimera.cpp
     ${COMMAND_DIR}/core/chimera/language.cpp
     ${COMMAND_DIR}/core/chimera/signature_info.cpp
     ${COMMAND_DIR}/core/debug/apply_damage.cpp

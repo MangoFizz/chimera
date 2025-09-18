@@ -8,9 +8,9 @@ common_true                                                                     
 chimera_error_config                                                            Chimera: Error opening config file %s
 chimera_error_command_not_found                                                 Command not found
 chimera_error_command_error                                                     %s: An error occurred while executing the command
-chimera_error_command_unavailable                                               %s: Command is unavailable on your Halo installation (missing %s)
-chimera_error_not_enough_arguments                                              %s: Not enough arguments were specified. Expected at least %zu
-chimera_error_too_many_arguments                                                %s: Too many arguments were specified. Expected at most %zu
+chimera_error_command_unavailable                                               %s: Command is unavailable on your Halo installation
+chimera_error_not_enough_arguments                                              %s: Not enough arguments were specified.
+chimera_error_too_many_arguments                                                %s: Too many arguments were specified.
 chimera_error_invalid_scripted_chimera_command                                  %s: Invalid scripted Chimera command
 
 chimera_error_must_be_in_a_server                                               You have to be in a server to do that.

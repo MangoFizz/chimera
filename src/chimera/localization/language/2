@@ -4,8 +4,8 @@ chimera_error_config                                                            
 chimera_error_command_not_found                                                 Vap ;-;
 chimera_error_command_error                                                     VAP! *flicks away %s with tailfin*
 chimera_error_command_unavailable                                               Vaaap... *bubblebeams away the %s that doesn't work because it requires your client to support %s*
-chimera_error_not_enough_arguments                                              Vaaap? *looks at the %s, confused about why you didn't put all %zu argument(s)*
-chimera_error_too_many_arguments                                                Vaaap? *looks at the %s, confused about why you put more than %zu argument(s)*
+chimera_error_not_enough_arguments                                              Vaaap? *looks at the %s, confused about why you didn't put all the arguments*
+chimera_error_too_many_arguments                                                Vaaap? *looks at the %s, confused about why you put more arguments*
 
 chimera_custom_chat_to_all                                                      ^5Vap^;
 chimera_custom_chat_to_team                                                     ^5Vaaap^;

@@ -191,8 +191,7 @@ namespace Chimera {
                 return luaL_error(state, localize("chimera_error_invalid_scripted_chimera_command"), command);
             }
             const bool save = lua_toboolean(state, 2);
-            const Command *found_command;
-            CommandResult result = get_chimera().execute_command(command, &found_command, save);\
+            CommandResult result = get_chimera().execute_command(command, save);\
             if (result == COMMAND_RESULT_FAILED_ERROR_NOT_FOUND) {
                 return luaL_error(state, localize("chimera_error_command_not_found"), command);
             }

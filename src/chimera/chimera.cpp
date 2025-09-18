@@ -7,6 +7,7 @@
 #include <cstring>
 #include <cmath>
 #include <optional>
+#include <command/command.hpp>
 #include "annoyance/novideo.hpp"
 #include "annoyance/tab_out_video.hpp"
 #include "bookmark/bookmark.hpp"
@@ -91,7 +92,6 @@
 namespace Chimera {
     static Chimera *chimera;
     static void initial_tick();
-    static void set_up_delayed_init();
     static void april_fools() noexcept;
 
     Chimera::Chimera() : p_signatures(find_all_signatures()) {
@@ -304,9 +304,6 @@ namespace Chimera {
             else {
                 enable_output(true);
             }
-
-            // Make it so number one
-            set_up_delayed_init();
         }
     }
 
@@ -390,46 +387,21 @@ namespace Chimera {
         return signatures_missing;
     }
 
-    CommandResult Chimera::execute_command(const char *command, const Command **found_command, bool saves) {
-        // Try to parse it
-        auto arguments = split_arguments(command);
-
-        // Check if there actually was something given
-        if(arguments.size() != 0) {
-            // Get the command name and lowercase it
-            std::string command_name = arguments[0];
-            for(char &c : command_name) {
-                c = std::tolower(c);
-            }
-
-            // Remove the command name from the arguments
-            arguments.erase(arguments.begin());
-
-            // Find and execute the command
-            for(auto &cmd : this->p_commands) {
-                if(std::strcmp(command_name.data(), cmd.name()) == 0) {
-                    if(found_command) {
-                        *found_command = &cmd;
-                    }
-                    extern const char *output_prefix;
-                    auto *old_prefix = output_prefix;
-                    if(std::strcmp(cmd.name(), "chimera") == 0) {
-                        output_prefix = nullptr;
-                    }
-                    else {
-                        output_prefix = cmd.name();
-                    }
-                    auto result = cmd.call(arguments);
-                    output_prefix = old_prefix;
-
-                    if(saves && this->p_config.get() && result == CommandResult::COMMAND_RESULT_SUCCESS && cmd.autosave() && arguments.size() > 0) {
-                        this->p_config->set_settings_for_command(command_name.data(), arguments);
-                    }
-                    return result;
-                }
-            }
+    CommandResult Chimera::execute_command(const char *command, bool saves) {
+        switch(Balltze::execute_command(command, saves)) {
+            case Balltze::COMMAND_RESULT_SUCCESS:
+                return COMMAND_RESULT_SUCCESS;
+            case Balltze::COMMAND_RESULT_FAILED_ERROR:
+                return COMMAND_RESULT_FAILED_ERROR;
+            case Balltze::COMMAND_RESULT_FAILED_ERROR_NOT_FOUND:
+                return COMMAND_RESULT_FAILED_ERROR_NOT_FOUND;
+            case Balltze::COMMAND_RESULT_FAILED_NOT_ENOUGH_ARGUMENTS:
+                return COMMAND_RESULT_FAILED_NOT_ENOUGH_ARGUMENTS;
+            case Balltze::COMMAND_RESULT_FAILED_TOO_MANY_ARGUMENTS:
+                return COMMAND_RESULT_FAILED_TOO_MANY_ARGUMENTS;
+            default:
+                return COMMAND_RESULT_FAILED_ERROR;
         }
-        return CommandResult::COMMAND_RESULT_FAILED_ERROR_NOT_FOUND;
     }
 
     Language Chimera::get_language() const noexcept {
@@ -574,11 +546,6 @@ namespace Chimera {
         return this->p_map_path;
     }
 
-    void Chimera::reload_config() {
-        this->p_config = std::make_unique<Config>(this->get_path() / "preferences.txt");
-        this->p_config->load();
-    }
-
     void Chimera::reload_ini() {
         this->p_ini = std::make_unique<Ini>("chimera.ini");
     }
@@ -611,24 +578,11 @@ namespace Chimera {
 
             // Also set these fixes
             char buffer[256];
-            auto &commands = chimera->get_commands();
-            if(game_engine() == GameEngine::GAME_ENGINE_DEMO) {
-                for(std::size_t i = 0; i < commands.size(); i++) {
-                    auto &command = commands[i];
-                    if(std::strcmp(command.category(), "chimera_category_fix") == 0) {
-                        std::snprintf(buffer, sizeof(buffer), "%s true", command.name());
-                        chimera->execute_command(buffer);
-                        commands.erase(commands.begin() + i);
-                        i--;
-                    }
-                }
-            }
-            else {
-                for(auto &i : commands) {
-                    if(std::strcmp(i.category(), "chimera_category_fix") == 0) {
-                        std::snprintf(buffer, sizeof(buffer), "%s true", i.name());
-                        chimera->execute_command(buffer);
-                    }
+            auto &commands = Balltze::get_commands();
+            for(auto &i : commands) {
+                if(std::strcmp(i->category(), "chimera_category_fix") == 0) {
+                    std::snprintf(buffer, sizeof(buffer), "%s true", i->name());
+                    chimera->execute_command(buffer);
                 }
             }
 
@@ -655,130 +609,12 @@ namespace Chimera {
 
             // Set sane defaults in line with the z-fighting fix.
             set_z_bias_slope();
-
-            chimera->reload_config();
         }
 
         // Set up Lua scripting
         setup_lua_scripting();
 
         enable_output(true);
-    }
-
-    const std::vector<Command> &Chimera::get_commands() const noexcept {
-        return this->p_commands;
-    }
-
-    std::vector<Command> &Chimera::get_commands() noexcept {
-        return this->p_commands;
-    }
-
-    static void execute_init() {
-        // Don't re-execute this
-        remove_frame_event(execute_init);
-        bool should_error_if_not_found = false;
-        bool is_server = get_chimera().feature_present("server");
-
-        // First see if we set anything here
-        const char *init = get_chimera().get_ini()->get_value("halo.exec");
-        if(init) {
-            should_error_if_not_found = true;
-        }
-        else {
-            init = "init.txt";
-        }
-
-        // Next, check the command-line args
-        auto *cmd_line = GetCommandLineA();
-        char *first_letter = cmd_line;
-        std::string last_param;
-        std::optional<std::string> init_maybe;
-        bool letter_digested = false;
-        bool inside_quote = false;
-        for(char *c = cmd_line; cmd_line == c || c[-1]; c++) {
-            // Invert if we're inside quotes
-            if(*c == '"') {
-                inside_quote = !inside_quote;
-            }
-
-            if((*c == 0 || (*c == ' ' && !inside_quote)) && letter_digested) {
-                std::string this_param = std::string(first_letter, c - first_letter);
-                if(last_param == "-exec") {
-                    init_maybe = this_param;
-                    break;
-                }
-                first_letter = c + 1;
-                last_param = this_param;
-                letter_digested = false;
-            }
-            else if(*c != ' ' && !letter_digested) {
-                letter_digested = true;
-            }
-            else if(*c == ' ' && !letter_digested) {
-                first_letter = c + 1;
-            }
-        }
-
-        // Remove quotes from it
-        char final_init_maybe[MAX_PATH] = {};
-        if(init_maybe.has_value()) {
-            auto init_maybe_len = init_maybe->size();
-            auto *init_maybe_cstr = init_maybe->c_str();
-            for(std::size_t i = 0, k = 0; i < (sizeof(final_init_maybe) - 1) && k < init_maybe_len; i++, k++) {
-                while(init_maybe_cstr[k] == '"') {
-                    k++;
-                }
-                final_init_maybe[i] = init_maybe_cstr[k];
-            }
-            init = final_init_maybe;
-            should_error_if_not_found = true;
-        }
-
-        // Do it!
-        if(!is_server) {
-            get_chimera().get_config().set_saving(false);
-        }
-        std::fstream file_to_open(init, std::ios_base::in);
-        if(file_to_open.is_open()) {
-            std::string line;
-            while(std::getline(file_to_open, line)) {
-                if(std::strncmp(line.c_str(), "chimera", strlen("chimera")) == 0) {
-                    const Command *found_command;
-                    switch(get_chimera().execute_command(line.c_str(), &found_command)) {
-                        case COMMAND_RESULT_SUCCESS:
-                        case COMMAND_RESULT_FAILED_ERROR:
-                            break;
-                        case COMMAND_RESULT_FAILED_FEATURE_NOT_AVAILABLE:
-                            console_error(localize("chimera_error_command_unavailable"), found_command->name(), found_command->feature());
-                            break;
-                        case COMMAND_RESULT_FAILED_ERROR_NOT_FOUND:
-                            console_error(localize("chimera_error_command_not_found"));
-                            break;
-                        case COMMAND_RESULT_FAILED_NOT_ENOUGH_ARGUMENTS:
-                            console_error(localize("chimera_error_not_enough_arguments"), found_command->name(), found_command->min_args());
-                            break;
-                        case COMMAND_RESULT_FAILED_TOO_MANY_ARGUMENTS:
-                            console_error(localize("chimera_error_too_many_arguments"), found_command->name(), found_command->max_args());
-                            break;
-                    }
-                }
-                else {
-                    execute_script(line.c_str());
-                }
-            }
-        }
-        else if(should_error_if_not_found) {
-            console_error(localize("chimera_error_failed_to_open_init"), init);
-        }
-        if(!is_server) {
-            get_chimera().get_config().set_saving(true);
-        }
-    }
-
-    static void set_up_delayed_init() {
-        auto &chimera = get_chimera();
-        overwrite(chimera.get_signature("exec_init_sig").data(), static_cast<std::uint8_t>(0xC3));
-        add_frame_event(execute_init);
     }
 
     // Have fun
