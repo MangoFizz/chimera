@@ -594,15 +594,8 @@ namespace Chimera {
             // Load the custom chat
             initialize_custom_chat();
 
-            // If we're using a custom console, set that up
-            if(chimera->get_ini()->get_value_bool("custom_console.enabled").value_or(false)) {
-                setup_custom_console();
-            }
-            // Otherwise, merely fix console fade
-            else {
-                // Fix console fade
-                setup_console_fade_fix();
-            }
+            // Always set up the custom console
+            setup_custom_console();
 
             // Fix the death reset time
             setup_death_reset_time_fix();
