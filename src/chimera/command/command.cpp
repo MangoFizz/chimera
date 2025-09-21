@@ -118,7 +118,7 @@ namespace Chimera {
         return unsplit;
     }
 
-    static void add_command(const std::string &name, const std::string &category, Balltze::CommandFunction function, bool autosave = false, std::size_t min_args = 0, std::size_t max_args = 0) {
+    static void add_command(const std::string &name, const std::string &category, const std::string &feature, Balltze::CommandFunction function, bool autosave = false, std::size_t min_args = 0, std::size_t max_args = 0) {
         CommandBuilder builder;
         
         builder.name(name.substr(8))
@@ -126,6 +126,16 @@ namespace Chimera {
             .help(localize((name + "_command_help").c_str()))
             .function(function);
         
+        if(feature.compare(0, 4, "core") == 0) {
+            builder.is_core();
+        }
+        else if(feature.compare(0, 6, "client") == 0) {
+            builder.is_client_side();
+        }
+        else if(feature.compare(0, 6, "server") == 0) {
+            builder.is_server_side();
+        }
+
         for(std::size_t i = 0; i < max_args; i++) {
             if(i < min_args) {
                 builder.param(HSC_DATA_TYPE_SIZE, std::string("arg") + std::to_string(i + 1), false);
@@ -145,7 +155,7 @@ namespace Chimera {
         #define ADD_COMMAND(name, category, feature, command_fn, autosave, min_args, max_args) \
             extern bool command_fn(int, const char **); \
             static_assert(autosave == false || autosave == true, "autosave value is not a boolean"); \
-            add_command(name, category, [](const std::vector<std::string> &args) -> bool { \
+            add_command(name, category, feature, [](const std::vector<std::string> &args) -> bool { \
                 std::vector<const char *> argv; \
                 argv.reserve(args.size()); \
                 for (const auto &arg : args) { \
