@@ -126,7 +126,6 @@ add_library(chimera STATIC
     src/chimera/fix/motion_sensor_fix.S
     src/chimera/fix/name_fade.cpp
     src/chimera/fix/name_fade.S
-    src/chimera/fix/nav_numbers.cpp
     src/chimera/fix/sane_defaults.cpp
     src/chimera/fix/sane_defaults.S
     src/chimera/fix/scoreboard_fade_fix.cpp
