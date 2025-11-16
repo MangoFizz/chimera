@@ -41,17 +41,7 @@ namespace Chimera {
     static std::int16_t tabs[4];
     static std::uint16_t *tabs_ptr;
 
-    extern "C" void reposition_gametype_indicator_asm();
     extern "C" void reposition_f2_background_asm();
-
-    extern "C" void reposition_gametype_indicator(Point2DInt *offset) noexcept {
-        offset->x += widescreen_left_offset_add * 2;
-
-        // Apply safe zones
-        auto hud_interface_safe_zones = hud_get_safe_zones();
-        offset->x -= hud_interface_safe_zones.x;
-        offset->y += hud_interface_safe_zones.y;
-    }
 
     extern "C" void reposition_f2_background(Rectangle2D *rect) noexcept {
         rect->left += widescreen_left_offset_add;
@@ -96,14 +86,6 @@ namespace Chimera {
 
         auto &widescreen_text_f2_text_position_rules_4_left_x_sig = get_chimera().get_signature("widescreen_text_f2_text_position_rules_4_left_x_sig");
         f2_rules_4_left_x = reinterpret_cast<std::int32_t *>(widescreen_text_f2_text_position_rules_4_left_x_sig.data() + 0x1);
-        
-        static Hook reposition_gametype_indicator_background_hook;
-        auto &widescreen_gametype_indicator_background_sig = get_chimera().get_signature("widescreen_gametype_indicator_background_sig");
-        write_jmp_call(widescreen_gametype_indicator_background_sig.data(), reposition_gametype_indicator_background_hook, reinterpret_cast<void *>(reposition_gametype_indicator_asm));
-        
-        static Hook reposition_gametype_indicator_hook;
-        auto &widescreen_gametype_indicator_sig = get_chimera().get_signature("widescreen_gametype_indicator_sig");
-        write_jmp_call(widescreen_gametype_indicator_sig.data(), reposition_gametype_indicator_hook, reinterpret_cast<void *>(reposition_gametype_indicator_asm));
 
         static Hook widescreen_f2_background_1_hook;
         auto &widescreen_f2_background_1 = get_chimera().get_signature("widescreen_f2_background_1");
